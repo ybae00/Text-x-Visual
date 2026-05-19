@@ -132,7 +132,11 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, model: MODEL });
 });
 
-app.listen(PORT, () => {
-  console.log(`CoCreate Canvas running at http://localhost:${PORT}`);
-  console.log(`Using model: ${MODEL}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`CoCreate Canvas running at http://localhost:${PORT}`);
+    console.log(`Using model: ${MODEL}`);
+  });
+}
+
+export default app;
