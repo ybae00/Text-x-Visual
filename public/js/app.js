@@ -264,59 +264,6 @@ class App {
   }
 }
 
-/* ─── Tutorial ─── */
-class Tutorial {
-  constructor() {
-    this.overlay = document.getElementById("tutorial-overlay");
-    if (!this.overlay) return;
-
-    if (localStorage.getItem("cocreate-tutorial-seen")) {
-      this.overlay.remove();
-      return;
-    }
-
-    this.currentStep = 0;
-    this.totalSteps = 3;
-    this.btn = document.getElementById("tutorial-next");
-
-    this.btn.addEventListener("click", () => this._advance());
-    this.overlay.addEventListener("click", (e) => {
-      if (e.target === this.overlay) this._advance();
-    });
-  }
-
-  _advance() {
-    const prev = this.overlay.querySelector(`.tutorial-step[data-step="${this.currentStep}"]`);
-    prev.classList.remove("active");
-    prev.classList.add("exit");
-
-    this.currentStep++;
-
-    if (this.currentStep >= this.totalSteps) {
-      this._dismiss();
-      return;
-    }
-
-    const next = this.overlay.querySelector(`.tutorial-step[data-step="${this.currentStep}"]`);
-    next.classList.add("active");
-
-    this.overlay.querySelectorAll(".tutorial-dot").forEach((d, i) => {
-      d.classList.toggle("active", i === this.currentStep);
-    });
-
-    if (this.currentStep === this.totalSteps - 1) {
-      this.btn.textContent = "start drawing";
-    }
-  }
-
-  _dismiss() {
-    localStorage.setItem("cocreate-tutorial-seen", "1");
-    this.overlay.classList.add("hidden");
-    setTimeout(() => this.overlay.remove(), 600);
-  }
-}
-
 window.addEventListener("DOMContentLoaded", () => {
-  new Tutorial();
   window.app = new App();
 });
