@@ -81,6 +81,34 @@
   <!-- Whisper text for AI state -->
   <div id="ai-whisper" class="ai-whisper"></div>
 
+  <!-- Tutorial -->
+  <div id="tutorial" class="tutorial">
+    <div class="tutorial-card">
+      <div class="tutorial-content" id="tutorial-content">
+        <div class="tutorial-step visible" data-step="0">
+          <span class="tutorial-emoji">🎨</span>
+          <p>Draw anything on the canvas</p>
+        </div>
+        <div class="tutorial-step" data-step="1">
+          <span class="tutorial-emoji">🤖</span>
+          <p>AI sees what you drew</p>
+        </div>
+        <div class="tutorial-step" data-step="2">
+          <span class="tutorial-emoji">✨</span>
+          <p>It draws something that goes with it</p>
+        </div>
+      </div>
+      <div class="tutorial-footer">
+        <div class="tutorial-dots">
+          <span class="tdot active"></span>
+          <span class="tdot"></span>
+          <span class="tdot"></span>
+        </div>
+        <button id="tutorial-btn" class="tutorial-btn">next</button>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="/js/app.js"></script>
 </body>
 </html>

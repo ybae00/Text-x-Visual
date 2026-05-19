@@ -264,6 +264,37 @@ class App {
   }
 }
 
+/* ─── Tutorial ─── */
+function initTutorial() {
+  const el = document.getElementById("tutorial");
+  if (!el) return;
+  if (localStorage.getItem("cocreate-tutorial-done")) { el.remove(); return; }
+
+  const btn = document.getElementById("tutorial-btn");
+  const steps = el.querySelectorAll(".tutorial-step");
+  const dots = el.querySelectorAll(".tdot");
+  let current = 0;
+
+  btn.addEventListener("click", () => {
+    steps[current].classList.remove("visible");
+    dots[current].classList.remove("active");
+    current++;
+
+    if (current >= steps.length) {
+      localStorage.setItem("cocreate-tutorial-done", "1");
+      el.classList.add("hidden");
+      setTimeout(() => el.remove(), 500);
+      return;
+    }
+
+    steps[current].classList.add("visible");
+    dots[current].classList.add("active");
+
+    if (current === steps.length - 1) btn.textContent = "start";
+  });
+}
+
 window.addEventListener("DOMContentLoaded", () => {
+  initTutorial();
   window.app = new App();
 });
