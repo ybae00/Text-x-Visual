@@ -1,13 +1,17 @@
 import "dotenv/config";
 import express from "express";
 import { GoogleGenAI } from "@google/genai";
+import { fileURLToPath } from "url";
+import path from "path";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash-image";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 app.use(express.json({ limit: "10mb" }));
-app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, "public")));
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
