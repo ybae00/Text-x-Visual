@@ -1,0 +1,477 @@
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --accent: #6c5ce7;
+  --accent-glow: rgba(108, 92, 231, 0.35);
+  --fg: #1a1a1a;
+  --fg-muted: rgba(0, 0, 0, 0.25);
+  --glass: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.35);
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #fff;
+  cursor: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Full-bleed Canvas ─── */
+#canvas-display,
+#canvas-interaction {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+
+#canvas-display {
+  z-index: 0;
+}
+
+#canvas-interaction {
+  z-index: 1;
+  opacity: 0;
+}
+
+/* ─── AI Ambient Glow ─── */
+.ai-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+
+.ai-glow.thinking {
+  opacity: 1;
+  background:
+    radial-gradient(ellipse at 0% 50%, var(--accent-glow), transparent 40%),
+    radial-gradient(ellipse at 100% 50%, var(--accent-glow), transparent 40%);
+  animation: glow-breathe 2.5s ease-in-out infinite;
+}
+
+.ai-glow.drawing {
+  opacity: 1;
+  background:
+    radial-gradient(ellipse at 0% 50%, rgba(39, 174, 96, 0.2), transparent 35%),
+    radial-gradient(ellipse at 100% 50%, rgba(39, 174, 96, 0.2), transparent 35%);
+  animation: glow-breathe 1.8s ease-in-out infinite;
+}
+
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ─── Floating Controls ─── */
+.controls {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 40px;
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.04);
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.4s ease;
+  transform: translateX(-50%) translateY(8px);
+}
+
+.controls.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.control-cluster {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.control-cluster + .control-cluster {
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
+  padding-left: 10px;
+}
+
+/* ─── Dots (tools & colors) ─── */
+.dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: none;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.dot:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dot-brush .dot-inner {
+  border-radius: 50%;
+  background: var(--fg);
+  transition: all 0.2s ease;
+}
+
+.dot-brush .dot-inner.textured {
+  background: repeating-conic-gradient(var(--fg) 0% 25%, transparent 0% 50%) 0 0 / 3px 3px;
+  border-radius: 50%;
+}
+
+.dot-brush .dot-inner.eraser-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: transparent;
+  border: 1.5px solid var(--fg-muted);
+}
+
+.dot-brush.active {
+  background: rgba(108, 92, 231, 0.1);
+}
+
+.dot-brush.active .dot-inner {
+  background: var(--accent);
+}
+
+.dot-brush.active .dot-inner.eraser-dot {
+  border-color: var(--accent);
+  background: transparent;
+}
+
+/* Color dots */
+.dot-color {
+  width: 18px;
+  height: 18px;
+  position: relative;
+}
+
+.dot-color::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--c);
+  transition: all 0.2s ease;
+}
+
+.dot-color:hover::after {
+  transform: scale(1.3);
+}
+
+.dot-color.active::after {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--c);
+}
+
+.dot-color-custom {
+  width: 18px;
+  height: 18px;
+}
+
+.dot-color-custom .plus {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--fg-muted);
+  line-height: 1;
+}
+
+.hidden-picker {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Size rail */
+.size-rail {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 60px;
+  height: 2px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 1px;
+  outline: none;
+  cursor: none;
+}
+
+.size-rail::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--fg);
+  border: none;
+  cursor: none;
+  transition: transform 0.15s ease;
+}
+
+.size-rail::-webkit-slider-thumb:hover {
+  transform: scale(1.4);
+}
+
+/* AI trigger dot */
+.dot-ai {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  position: relative;
+  cursor: none;
+  transition: all 0.3s ease;
+}
+
+.dot-ai:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.dot-ai:active {
+  transform: scale(0.95);
+}
+
+.dot-ai:disabled {
+  opacity: 0.4;
+  transform: none;
+  box-shadow: none;
+}
+
+.ai-spark {
+  display: block;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border-radius: 50%;
+}
+
+.dot-ai:disabled .ai-spark {
+  animation: pulse-spark 1s ease-in-out infinite;
+}
+
+@keyframes pulse-spark {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(0.6); }
+}
+
+/* ─── Ghost Actions (top-right, nearly invisible) ─── */
+.actions {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.actions.visible {
+  opacity: 1;
+}
+
+.ghost-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: none;
+  transition: all 0.2s ease;
+}
+
+.ghost-btn:hover {
+  color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.ghost-btn.active {
+  color: var(--accent);
+}
+
+/* ─── AI Whisper (subtle state text) ─── */
+.ai-whisper {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  font-size: 11px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  color: rgba(0, 0, 0, 0.2);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.ai-whisper.visible {
+  opacity: 1;
+}
+
+/* ─── Brush Cursor ─── */
+.brush-cursor {
+  position: fixed;
+  pointer-events: none;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 100;
+  transition: width 0.1s ease, height 0.1s ease;
+}
+
+/* ─── Tutorial Overlay ─── */
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  opacity: 1;
+  transition: opacity 0.6s ease;
+}
+
+.tutorial-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tutorial-card {
+  max-width: 340px;
+  width: 100%;
+  padding: 48px 36px 32px;
+  text-align: center;
+}
+
+.tutorial-steps {
+  position: relative;
+  min-height: 200px;
+}
+
+.tutorial-step {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+.tutorial-step.active {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.tutorial-step.exit {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.tutorial-icon {
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.tutorial-step h2 {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--fg);
+  letter-spacing: -0.3px;
+}
+
+.tutorial-step p {
+  font-size: 14px;
+  font-weight: 300;
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1.5;
+  max-width: 260px;
+}
+
+.tutorial-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32px;
+}
+
+.tutorial-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.tutorial-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.12);
+  transition: all 0.3s ease;
+}
+
+.tutorial-dot.active {
+  background: var(--accent);
+  transform: scale(1.2);
+}
+
+.tutorial-btn {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 24px;
+  padding: 10px 28px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tutorial-btn:hover {
+  background: #5b4bd4;
+  transform: scale(1.04);
+}
+
+.tutorial-overlay, .tutorial-overlay * {
+  cursor: default;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { display: none; }
